@@ -1,0 +1,1027 @@
+openapi: 3.0.0
+info:
+  title: Content Sharing Platform API
+  description: |
+    A comprehensive REST API for a content sharing platform that allows users to share, discover, and rate media content.
+    
+    ## Features
+    - JWT-based authentication
+    - User registration and login
+    - Media content management (CRUD)
+    - Rating system (1-5 stars)
+    - Advanced filtering and search
+    - Pagination support
+    - Rating statistics
+    
+    ## Authentication
+    Most endpoints require authentication using JWT tokens. After logging in or registering, include the token in the Authorization header:
+    ```
+    Authorization: Bearer <your_jwt_token>
+    ```
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: support@example.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:5000
+    description: Development server
+
+tags:
+  - name: Health
+    description: API health check
+  - name: Authentication
+    description: User registration and authentication
+  - name: Content
+    description: Media content management
+  - name: Ratings
+    description: Content rating system
+
+paths:
+  /health:
+    get:
+      tags:
+        - Health
+      summary: Health check
+      description: Check if the API is running
+      operationId: healthCheck
+      responses:
+        '200':
+          description: API is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: healthy
+                  message:
+                    type: string
+                    example: API is running
+
+  /api:
+    get:
+      tags:
+        - Health
+      summary: API information
+      description: Get API version and available endpoints
+      operationId: apiInfo
+      responses:
+        '200':
+          description: API information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    example: Content Sharing Platform API
+                  version:
+                    type: string
+                    example: 1.0.0
+                  endpoints:
+                    type: object
+
+  /api/auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: Register a new user
+      description: Create a new user account and receive a JWT token
+      operationId: registerUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegistration'
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: User created successfully
+                  user:
+                    $ref: '#/components/schemas/User'
+                  access_token:
+                    type: string
+                    example: eyJ0eXAiOiJKV1QiLCJhbGc...
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: Login
+      description: Authenticate user and receive JWT token
+      operationId: loginUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserLogin'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Login successful
+                  user:
+                    $ref: '#/components/schemas/User'
+                  access_token:
+                    type: string
+                    example: eyJ0eXAiOiJKV1QiLCJhbGc...
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/auth/me:
+    get:
+      tags:
+        - Authentication
+      summary: Get current user
+      description: Get the currently authenticated user's information
+      operationId: getCurrentUser
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Current user information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserWithEmail'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/content:
+    get:
+      tags:
+        - Content
+      summary: List all content
+      description: Get a paginated list of media content with optional filtering and sorting
+      operationId: listContent
+      parameters:
+        - name: page
+          in: query
+          description: Page number
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+        - name: per_page
+          in: query
+          description: Items per page
+          schema:
+            type: integer
+            default: 10
+            minimum: 1
+            maximum: 100
+        - name: category
+          in: query
+          description: Filter by category
+          schema:
+            $ref: '#/components/schemas/MediaCategory'
+        - name: user_id
+          in: query
+          description: Filter by creator user ID
+          schema:
+            type: integer
+        - name: search
+          in: query
+          description: Search in title and description
+          schema:
+            type: string
+        - name: sort_by
+          in: query
+          description: Field to sort by
+          schema:
+            type: string
+            default: created_at
+            enum: [created_at, title, category, user_id]
+        - name: order
+          in: query
+          description: Sort order
+          schema:
+            type: string
+            default: desc
+            enum: [asc, desc]
+      responses:
+        '200':
+          description: List of content
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MediaContent'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+
+    post:
+      tags:
+        - Content
+      summary: Create content
+      description: Create a new media content item (requires authentication)
+      operationId: createContent
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MediaContentCreate'
+      responses:
+        '201':
+          description: Content created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Content created successfully
+                  content:
+                    $ref: '#/components/schemas/MediaContent'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/content/categories:
+    get:
+      tags:
+        - Content
+      summary: Get categories
+      description: Get list of all available content categories
+      operationId: getCategories
+      responses:
+        '200':
+          description: List of categories
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  categories:
+                    type: array
+                    items:
+                      type: string
+                    example: [video, image, audio, document, other]
+
+  /api/content/{media_id}:
+    get:
+      tags:
+        - Content
+      summary: Get content by ID
+      description: Get detailed information about a specific media content
+      operationId: getContent
+      parameters:
+        - name: media_id
+          in: path
+          required: true
+          description: Media content ID
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Content details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MediaContentDetail'
+        '404':
+          description: Content not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    put:
+      tags:
+        - Content
+      summary: Update content
+      description: Update an existing media content (only by creator)
+      operationId: updateContent
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: media_id
+          in: path
+          required: true
+          description: Media content ID
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MediaContentUpdate'
+      responses:
+        '200':
+          description: Content updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Content updated successfully
+                  content:
+                    $ref: '#/components/schemas/MediaContent'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - not the content creator
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Content not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      tags:
+        - Content
+      summary: Delete content
+      description: Delete a media content (only by creator)
+      operationId: deleteContent
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: media_id
+          in: path
+          required: true
+          description: Media content ID
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Content deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Content deleted successfully
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - not the content creator
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Content not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/ratings:
+    get:
+      tags:
+        - Ratings
+      summary: List ratings
+      description: Get a paginated list of ratings with optional filtering
+      operationId: listRatings
+      parameters:
+        - name: page
+          in: query
+          description: Page number
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+        - name: per_page
+          in: query
+          description: Items per page
+          schema:
+            type: integer
+            default: 10
+            minimum: 1
+            maximum: 100
+        - name: media_id
+          in: query
+          description: Filter by media content ID
+          schema:
+            type: integer
+        - name: user_id
+          in: query
+          description: Filter by user ID
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: List of ratings
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ratings:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Rating'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+
+    post:
+      tags:
+        - Ratings
+      summary: Create rating
+      description: Create a new rating for a media content (requires authentication)
+      operationId: createRating
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RatingCreate'
+      responses:
+        '201':
+          description: Rating created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Rating created successfully
+                  rating:
+                    $ref: '#/components/schemas/Rating'
+        '400':
+          description: Validation error or duplicate rating
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Media content not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/ratings/{rating_id}:
+    get:
+      tags:
+        - Ratings
+      summary: Get rating by ID
+      description: Get detailed information about a specific rating
+      operationId: getRating
+      parameters:
+        - name: rating_id
+          in: path
+          required: true
+          description: Rating ID
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Rating details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Rating'
+        '404':
+          description: Rating not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    put:
+      tags:
+        - Ratings
+      summary: Update rating
+      description: Update an existing rating (only by creator)
+      operationId: updateRating
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: rating_id
+          in: path
+          required: true
+          description: Rating ID
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RatingUpdate'
+      responses:
+        '200':
+          description: Rating updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Rating updated successfully
+                  rating:
+                    $ref: '#/components/schemas/Rating'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - not the rating creator
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Rating not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      tags:
+        - Ratings
+      summary: Delete rating
+      description: Delete a rating (only by creator)
+      operationId: deleteRating
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: rating_id
+          in: path
+          required: true
+          description: Rating ID
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Rating deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Rating deleted successfully
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - not the rating creator
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Rating not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/ratings/media/{media_id}/stats:
+    get:
+      tags:
+        - Ratings
+      summary: Get rating statistics
+      description: Get comprehensive rating statistics for a media content
+      operationId: getRatingStats
+      parameters:
+        - name: media_id
+          in: path
+          required: true
+          description: Media content ID
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Rating statistics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RatingStats'
+        '404':
+          description: Media content not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token obtained from login or registration
+
+  schemas:
+    MediaCategory:
+      type: string
+      enum:
+        - video
+        - image
+        - audio
+        - document
+        - other
+      description: Category of media content
+
+    UserRegistration:
+      type: object
+      required:
+        - username
+        - email
+        - password
+      properties:
+        username:
+          type: string
+          minLength: 3
+          maxLength: 50
+          example: johndoe
+          description: Unique username (3-50 characters)
+        email:
+          type: string
+          format: email
+          example: john@example.com
+          description: Valid email address
+        password:
+          type: string
+          minLength: 6
+          example: securepass123
+          description: Password (minimum 6 characters)
+
+    UserLogin:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+          example: johndoe
+        password:
+          type: string
+          example: securepass123
+
+    User:
+      type: object
+      properties:
+        user_id:
+          type: integer
+          example: 1
+        username:
+          type: string
+          example: johndoe
+        created_at:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+
+    UserWithEmail:
+      allOf:
+        - $ref: '#/components/schemas/User'
+        - type: object
+          properties:
+            email:
+              type: string
+              format: email
+              example: john@example.com
+
+    MediaContentCreate:
+      type: object
+      required:
+        - title
+        - category
+        - content_url
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+          example: Amazing Sunset Video
+          description: Content title (max 200 characters)
+        description:
+          type: string
+          example: A beautiful sunset captured at the beach
+          description: Optional content description
+        category:
+          $ref: '#/components/schemas/MediaCategory'
+        thumbnail_url:
+          type: string
+          format: uri
+          example: https://example.com/thumbnails/sunset.jpg
+          description: Optional thumbnail URL
+        content_url:
+          type: string
+          format: uri
+          example: https://example.com/videos/sunset.mp4
+          description: URL to the actual content
+
+    MediaContentUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+          example: Updated Sunset Video
+        description:
+          type: string
+          example: Updated description
+        category:
+          $ref: '#/components/schemas/MediaCategory'
+        thumbnail_url:
+          type: string
+          format: uri
+          example: https://example.com/thumbnails/sunset-new.jpg
+        content_url:
+          type: string
+          format: uri
+          example: https://example.com/videos/sunset-hd.mp4
+
+    MediaContent:
+      type: object
+      properties:
+        media_id:
+          type: integer
+          example: 1
+        user_id:
+          type: integer
+          example: 1
+        title:
+          type: string
+          example: Amazing Sunset Video
+        description:
+          type: string
+          example: A beautiful sunset captured at the beach
+        category:
+          $ref: '#/components/schemas/MediaCategory'
+        thumbnail_url:
+          type: string
+          format: uri
+          example: https://example.com/thumbnails/sunset.jpg
+        content_url:
+          type: string
+          format: uri
+          example: https://example.com/videos/sunset.mp4
+        created_at:
+          type: string
+          format: date-time
+          example: "2024-01-15T14:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2024-01-15T14:30:00Z"
+
+    MediaContentDetail:
+      allOf:
+        - $ref: '#/components/schemas/MediaContent'
+        - type: object
+          properties:
+            creator:
+              $ref: '#/components/schemas/User'
+            rating_stats:
+              type: object
+              properties:
+                total_ratings:
+                  type: integer
+                  example: 42
+                average_rating:
+                  type: number
+                  format: float
+                  example: 4.5
+
+    RatingCreate:
+      type: object
+      required:
+        - media_id
+        - score
+      properties:
+        media_id:
+          type: integer
+          example: 1
+          description: ID of the media content to rate
+        score:
+          type: integer
+          minimum: 1
+          maximum: 5
+          example: 5
+          description: Rating score (1-5 stars)
+        comment:
+          type: string
+          example: Excellent content!
+          description: Optional comment about the rating
+
+    RatingUpdate:
+      type: object
+      properties:
+        score:
+          type: integer
+          minimum: 1
+          maximum: 5
+          example: 4
+          description: Updated rating score (1-5 stars)
+        comment:
+          type: string
+          example: Very good content
+          description: Updated comment
+
+    Rating:
+      type: object
+      properties:
+        rating_id:
+          type: integer
+          example: 1
+        media_id:
+          type: integer
+          example: 1
+        user_id:
+          type: integer
+          example: 1
+        score:
+          type: integer
+          minimum: 1
+          maximum: 5
+          example: 5
+        comment:
+          type: string
+          example: Excellent content!
+        created_at:
+          type: string
+          format: date-time
+          example: "2024-01-15T15:00:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2024-01-15T15:00:00Z"
+        user:
+          $ref: '#/components/schemas/User'
+        media:
+          type: object
+          properties:
+            media_id:
+              type: integer
+              example: 1
+            title:
+              type: string
+              example: Amazing Sunset Video
+
+    RatingStats:
+      type: object
+      properties:
+        media_id:
+          type: integer
+          example: 1
+        total_ratings:
+          type: integer
+          example: 42
+          description: Total number of ratings
+        average_rating:
+          type: number
+          format: float
+          example: 4.5
+          description: Average rating score
+        rating_distribution:
+          type: object
+          properties:
+            '1':
+              type: integer
+              example: 2
+              description: Number of 1-star ratings
+            '2':
+              type: integer
+              example: 3
+              description: Number of 2-star ratings
+            '3':
+              type: integer
+              example: 5
+              description: Number of 3-star ratings
+            '4':
+              type: integer
+              example: 12
+              description: Number of 4-star ratings
+            '5':
+              type: integer
+              example: 20
+              description: Number of 5-star ratings
+
+    Pagination:
+      type: object
+      properties:
+        page:
+          type: integer
+          example: 1
+          description: Current page number
+        per_page:
+          type: integer
+          example: 10
+          description: Items per page
+        total_items:
+          type: integer
+          example: 42
+          description: Total number of items
+        total_pages:
+          type: integer
+          example: 5
+          description: Total number of pages
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Validation error
+          description: Error message
+        message:
+          type: string
+          example: Invalid input data
+          description: Detailed error description

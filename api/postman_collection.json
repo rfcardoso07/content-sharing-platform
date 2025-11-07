@@ -1,0 +1,599 @@
+{
+  "info": {
+    "name": "Content Sharing Platform API",
+    "description": "Complete API collection for the Content Sharing Platform with authentication, content management, and rating system.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:5000",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "user_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "media_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "rating_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health & Info",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": ["{{base_url}}"],
+              "path": ["health"]
+            },
+            "description": "Check if the API is running and healthy."
+          },
+          "response": []
+        },
+        {
+          "name": "API Info",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api",
+              "host": ["{{base_url}}"],
+              "path": ["api"]
+            },
+            "description": "Get API information and available endpoints."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('access_token', jsonData.access_token);",
+                  "    pm.collectionVariables.set('user_id', jsonData.user.user_id);",
+                  "    console.log('Token saved:', jsonData.access_token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"testuser\",\n  \"email\": \"testuser@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "register"]
+            },
+            "description": "Register a new user and receive a JWT token. The token is automatically saved to collection variables."
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('access_token', jsonData.access_token);",
+                  "    pm.collectionVariables.set('user_id', jsonData.user.user_id);",
+                  "    console.log('Token saved:', jsonData.access_token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"testuser\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "description": "Login with username and password. The JWT token is automatically saved to collection variables."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/me",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "me"]
+            },
+            "description": "Get information about the currently authenticated user. Requires JWT token."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Content Management",
+      "item": [
+        {
+          "name": "Create Content",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('media_id', jsonData.content.media_id);",
+                  "    console.log('Media ID saved:', jsonData.content.media_id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"My Awesome Video\",\n  \"description\": \"This is a great video about coding\",\n  \"category\": \"video\",\n  \"thumbnail_url\": \"https://example.com/thumb.jpg\",\n  \"content_url\": \"https://example.com/video.mp4\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/content",
+              "host": ["{{base_url}}"],
+              "path": ["api", "content"]
+            },
+            "description": "Create a new media content item. Requires authentication. The media_id is automatically saved."
+          },
+          "response": []
+        },
+        {
+          "name": "List All Content",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/content?page=1&per_page=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "content"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "per_page",
+                  "value": "10"
+                },
+                {
+                  "key": "category",
+                  "value": "video",
+                  "disabled": true
+                },
+                {
+                  "key": "user_id",
+                  "value": "{{user_id}}",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "coding",
+                  "disabled": true
+                },
+                {
+                  "key": "sort_by",
+                  "value": "created_at",
+                  "disabled": true
+                },
+                {
+                  "key": "order",
+                  "value": "desc",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Get a paginated list of all content. Supports filtering, searching, and sorting. Enable query parameters as needed."
+          },
+          "response": []
+        },
+        {
+          "name": "List Content (Filtered by Category)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/content?category=video&per_page=20",
+              "host": ["{{base_url}}"],
+              "path": ["api", "content"],
+              "query": [
+                {
+                  "key": "category",
+                  "value": "video"
+                },
+                {
+                  "key": "per_page",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Get content filtered by category (video, image, audio, document, other)."
+          },
+          "response": []
+        },
+        {
+          "name": "List Content (Search)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/content?search=coding&sort_by=title&order=asc",
+              "host": ["{{base_url}}"],
+              "path": ["api", "content"],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "coding"
+                },
+                {
+                  "key": "sort_by",
+                  "value": "title"
+                },
+                {
+                  "key": "order",
+                  "value": "asc"
+                }
+              ]
+            },
+            "description": "Search content by title or description with custom sorting."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Content by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/content/{{media_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "content", "{{media_id}}"]
+            },
+            "description": "Get detailed information about a specific media content, including creator info and rating stats."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Content",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated Title\",\n  \"description\": \"Updated description\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/content/{{media_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "content", "{{media_id}}"]
+            },
+            "description": "Update an existing content item. Only the creator can update. Partial updates are supported."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Content",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/content/{{media_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "content", "{{media_id}}"]
+            },
+            "description": "Delete a content item. Only the creator can delete. This will also delete all ratings."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/content/categories",
+              "host": ["{{base_url}}"],
+              "path": ["api", "content", "categories"]
+            },
+            "description": "Get list of all available content categories."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Ratings",
+      "item": [
+        {
+          "name": "Create Rating",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('rating_id', jsonData.rating.rating_id);",
+                  "    console.log('Rating ID saved:', jsonData.rating.rating_id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"media_id\": {{media_id}},\n  \"score\": 5,\n  \"comment\": \"Excellent content!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/ratings",
+              "host": ["{{base_url}}"],
+              "path": ["api", "ratings"]
+            },
+            "description": "Create a new rating for a media content. Score must be 1-5. Each user can only rate each content once."
+          },
+          "response": []
+        },
+        {
+          "name": "List All Ratings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/ratings?page=1&per_page=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "ratings"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "per_page",
+                  "value": "10"
+                },
+                {
+                  "key": "media_id",
+                  "value": "{{media_id}}",
+                  "disabled": true
+                },
+                {
+                  "key": "user_id",
+                  "value": "{{user_id}}",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Get a paginated list of all ratings. Can be filtered by media_id or user_id."
+          },
+          "response": []
+        },
+        {
+          "name": "List Ratings by Media",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/ratings?media_id={{media_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "ratings"],
+              "query": [
+                {
+                  "key": "media_id",
+                  "value": "{{media_id}}"
+                }
+              ]
+            },
+            "description": "Get all ratings for a specific media content."
+          },
+          "response": []
+        },
+        {
+          "name": "List Ratings by User",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/ratings?user_id={{user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "ratings"],
+              "query": [
+                {
+                  "key": "user_id",
+                  "value": "{{user_id}}"
+                }
+              ]
+            },
+            "description": "Get all ratings created by a specific user."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Rating by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/ratings/{{rating_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "ratings", "{{rating_id}}"]
+            },
+            "description": "Get detailed information about a specific rating."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Rating",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"score\": 4,\n  \"comment\": \"Very good content!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/ratings/{{rating_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "ratings", "{{rating_id}}"]
+            },
+            "description": "Update an existing rating. Only the creator can update. Partial updates are supported."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Rating",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/ratings/{{rating_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "ratings", "{{rating_id}}"]
+            },
+            "description": "Delete a rating. Only the creator can delete."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Rating Statistics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/ratings/media/{{media_id}}/stats",
+              "host": ["{{base_url}}"],
+              "path": ["api", "ratings", "media", "{{media_id}}", "stats"]
+            },
+            "description": "Get comprehensive rating statistics for a media content, including total ratings, average, and distribution."
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{access_token}}",
+        "type": "string"
+      }
+    ]
+  }
+}
