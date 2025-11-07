@@ -10,13 +10,13 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     -- ============================================
     -- INSERT USERS (Requirement: at least 2)
     -- ============================================
-    -- All users have the same password: 'password123'
+    -- All template users have the same password: 'password123'
     -- Password hashes generated with werkzeug.security.generate_password_hash('password123')
     INSERT INTO users (username, email, password_hash, last_login) VALUES
-        ('john_doe', 'john@example.com', 'scrypt:32768:8:1\$rT8yU9iO3pL6mK2n\$a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2g3h4i5j6k7l8m9n0o1p2q3r4s5t6u7v8w9x0y1z2a3b4c5d6e7f8g9h0', CURRENT_TIMESTAMP - INTERVAL '2 days'),
-        ('jane_smith', 'jane@example.com', 'scrypt:32768:8:1\$aB3cD4eF5gH6iJ7k\$z9y8x7w6v5u4t3s2r1q0p9o8n7m6l5k4j3i2h1g0f9e8d7c6b5a4z3y2x1w0v9u8t7s6r5q4p3o2n1m0l9k8j7i6h5g4f3e2d1c0b9a8z7y6x5w4v3u2t1', CURRENT_TIMESTAMP - INTERVAL '1 day'),
-        ('game_master', 'gamer@example.com', 'scrypt:32768:8:1\$xY9zA1bC2dE3fG4h\$p0o9i8u7y6t5r4e3w2q1a0s9d8f7g6h5j4k3l2z1x0c9v8b7n6m5q4w3e2r1t0y9u8i7o6p5a4s3d2f1g0h9j8k7l6', CURRENT_TIMESTAMP - INTERVAL '5 hours'),
-        ('music_lover', 'musiclover@example.com', 'scrypt:32768:8:1\$mN5oP6qR7sT8uV9w\$k0j9h8g7f6d5s4a3q2w1e0r9t8y7u6i5o4p3a2s1d0f9g8h7j6k5l4z3x2c1v0b9n8m7q6w5e4r3t2y1u0i9o8p7a6s5d4f3g2h1j0', CURRENT_TIMESTAMP - INTERVAL '3 hours')
+        ('john_doe', 'john@example.com', 'pbkdf2:sha256:260000\$fYhQnHwLx2A33CZR\$6668f3038fa5c5ecc89bb4136d7df8adb262f3a161b9f5d20a8ac84b17bc2b47', CURRENT_TIMESTAMP - INTERVAL '2 days'),
+        ('jane_smith', 'jane@example.com', 'pbkdf2:sha256:260000\$fYhQnHwLx2A33CZR\$6668f3038fa5c5ecc89bb4136d7df8adb262f3a161b9f5d20a8ac84b17bc2b47', CURRENT_TIMESTAMP - INTERVAL '1 day'),
+        ('game_master', 'gamer@example.com', 'pbkdf2:sha256:260000\$fYhQnHwLx2A33CZR\$6668f3038fa5c5ecc89bb4136d7df8adb262f3a161b9f5d20a8ac84b17bc2b47', CURRENT_TIMESTAMP - INTERVAL '5 hours'),
+        ('music_lover', 'musiclover@example.com', 'pbkdf2:sha256:260000\$fYhQnHwLx2A33CZR\$6668f3038fa5c5ecc89bb4136d7df8adb262f3a161b9f5d20a8ac84b17bc2b47', CURRENT_TIMESTAMP - INTERVAL '3 hours')
     ON CONFLICT DO NOTHING;
     
     -- ============================================
