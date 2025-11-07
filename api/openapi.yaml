@@ -18,6 +18,13 @@ info:
     ```
     Authorization: Bearer <your_jwt_token>
     ```
+    
+    ## Sample Users
+    The database is pre-populated with sample users (password: `password123`):
+    - `john_doe` / john@example.com
+    - `jane_smith` / jane@example.com
+    - `game_master` / gamer@example.com
+    - `music_lover` / musiclover@example.com
   version: 1.0.0
   contact:
     name: API Support
@@ -100,6 +107,13 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/UserRegistration'
+            examples:
+              newUser:
+                summary: New user registration
+                value:
+                  username: newuser123
+                  email: newuser@example.com
+                  password: securepass123
       responses:
         '201':
           description: User created successfully
@@ -136,6 +150,17 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/UserLogin'
+            examples:
+              sampleUser:
+                summary: Sample user (john_doe)
+                value:
+                  username: john_doe
+                  password: password123
+              sampleUser2:
+                summary: Sample user (jane_smith)
+                value:
+                  username: jane_smith
+                  password: password123
       responses:
         '200':
           description: Login successful
@@ -212,9 +237,11 @@ paths:
             $ref: '#/components/schemas/MediaCategory'
         - name: user_id
           in: query
-          description: Filter by creator user ID
+          description: Filter by creator user ID (UUID)
           schema:
-            type: integer
+            type: string
+            format: uuid
+            example: 550e8400-e29b-41d4-a716-446655440000
         - name: search
           in: query
           description: Search in title and description
@@ -263,6 +290,23 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/MediaContentCreate'
+            examples:
+              gameContent:
+                summary: Game content
+                value:
+                  title: My Awesome Game
+                  description: An exciting puzzle game
+                  category: game
+                  thumbnail_url: https://example.com/thumbnails/game.jpg
+                  content_url: https://example.com/games/mygame.zip
+              videoContent:
+                summary: Video content
+                value:
+                  title: Cooking Tutorial
+                  description: Learn to cook amazing pasta
+                  category: video
+                  thumbnail_url: https://example.com/thumbnails/cooking.jpg
+                  content_url: https://example.com/videos/cooking.mp4
       responses:
         '201':
           description: Content created successfully
@@ -308,7 +352,7 @@ paths:
                     type: array
                     items:
                       type: string
-                    example: [video, image, audio, document, other]
+                    example: [game, video, artwork, music]
 
   /api/content/{media_id}:
     get:
@@ -321,9 +365,11 @@ paths:
         - name: media_id
           in: path
           required: true
-          description: Media content ID
+          description: Media content UUID
           schema:
-            type: integer
+            type: string
+            format: uuid
+            example: 550e8400-e29b-41d4-a716-446655440000
       responses:
         '200':
           description: Content details
@@ -350,9 +396,11 @@ paths:
         - name: media_id
           in: path
           required: true
-          description: Media content ID
+          description: Media content UUID
           schema:
-            type: integer
+            type: string
+            format: uuid
+            example: 550e8400-e29b-41d4-a716-446655440000
       requestBody:
         required: true
         content:
@@ -409,9 +457,11 @@ paths:
         - name: media_id
           in: path
           required: true
-          description: Media content ID
+          description: Media content UUID
           schema:
-            type: integer
+            type: string
+            format: uuid
+            example: 550e8400-e29b-41d4-a716-446655440000
       responses:
         '200':
           description: Content deleted successfully
@@ -467,14 +517,18 @@ paths:
             maximum: 100
         - name: media_id
           in: query
-          description: Filter by media content ID
+          description: Filter by media content UUID
           schema:
-            type: integer
+            type: string
+            format: uuid
+            example: 550e8400-e29b-41d4-a716-446655440000
         - name: user_id
           in: query
-          description: Filter by user ID
+          description: Filter by user UUID
           schema:
-            type: integer
+            type: string
+            format: uuid
+            example: 550e8400-e29b-41d4-a716-446655440000
       responses:
         '200':
           description: List of ratings
@@ -504,6 +558,18 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/RatingCreate'
+            examples:
+              rating5stars:
+                summary: 5-star rating with comment
+                value:
+                  media_id: 550e8400-e29b-41d4-a716-446655440000
+                  score: 5
+                  comment: Excellent content! Highly recommended!
+              rating4stars:
+                summary: 4-star rating without comment
+                value:
+                  media_id: 550e8400-e29b-41d4-a716-446655440000
+                  score: 4
       responses:
         '201':
           description: Rating created successfully
@@ -547,9 +613,11 @@ paths:
         - name: rating_id
           in: path
           required: true
-          description: Rating ID
+          description: Rating UUID
           schema:
-            type: integer
+            type: string
+            format: uuid
+            example: 550e8400-e29b-41d4-a716-446655440000
       responses:
         '200':
           description: Rating details
@@ -576,9 +644,11 @@ paths:
         - name: rating_id
           in: path
           required: true
-          description: Rating ID
+          description: Rating UUID
           schema:
-            type: integer
+            type: string
+            format: uuid
+            example: 550e8400-e29b-41d4-a716-446655440000
       requestBody:
         required: true
         content:
@@ -635,9 +705,11 @@ paths:
         - name: rating_id
           in: path
           required: true
-          description: Rating ID
+          description: Rating UUID
           schema:
-            type: integer
+            type: string
+            format: uuid
+            example: 550e8400-e29b-41d4-a716-446655440000
       responses:
         '200':
           description: Rating deleted successfully
@@ -679,9 +751,11 @@ paths:
         - name: media_id
           in: path
           required: true
-          description: Media content ID
+          description: Media content UUID
           schema:
-            type: integer
+            type: string
+            format: uuid
+            example: 550e8400-e29b-41d4-a716-446655440000
       responses:
         '200':
           description: Rating statistics
@@ -708,11 +782,10 @@ components:
     MediaCategory:
       type: string
       enum:
+        - game
         - video
-        - image
-        - audio
-        - document
-        - other
+        - artwork
+        - music
       description: Category of media content
 
     UserRegistration:
@@ -726,12 +799,12 @@ components:
           type: string
           minLength: 3
           maxLength: 50
-          example: johndoe
+          example: newuser123
           description: Unique username (3-50 characters)
         email:
           type: string
           format: email
-          example: john@example.com
+          example: newuser@example.com
           description: Valid email address
         password:
           type: string
@@ -747,20 +820,24 @@ components:
       properties:
         username:
           type: string
-          example: johndoe
+          example: john_doe
+          description: Username of a registered user
         password:
           type: string
-          example: securepass123
+          example: password123
+          description: User password
 
     User:
       type: object
       properties:
         user_id:
-          type: integer
-          example: 1
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+          description: Unique user identifier (UUID)
         username:
           type: string
-          example: johndoe
+          example: john_doe
         created_at:
           type: string
           format: date-time
@@ -786,9 +863,9 @@ components:
         title:
           type: string
           minLength: 1
-          maxLength: 200
+          maxLength: 255
           example: Amazing Sunset Video
-          description: Content title (max 200 characters)
+          description: Content title (max 255 characters)
         description:
           type: string
           example: A beautiful sunset captured at the beach
@@ -798,11 +875,13 @@ components:
         thumbnail_url:
           type: string
           format: uri
+          maxLength: 512
           example: https://example.com/thumbnails/sunset.jpg
           description: Optional thumbnail URL
         content_url:
           type: string
           format: uri
+          maxLength: 512
           example: https://example.com/videos/sunset.mp4
           description: URL to the actual content
 
@@ -812,7 +891,7 @@ components:
         title:
           type: string
           minLength: 1
-          maxLength: 200
+          maxLength: 255
           example: Updated Sunset Video
         description:
           type: string
@@ -822,21 +901,31 @@ components:
         thumbnail_url:
           type: string
           format: uri
+          maxLength: 512
           example: https://example.com/thumbnails/sunset-new.jpg
         content_url:
           type: string
           format: uri
+          maxLength: 512
           example: https://example.com/videos/sunset-hd.mp4
 
     MediaContent:
       type: object
       properties:
         media_id:
-          type: integer
-          example: 1
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+          description: Unique media content identifier (UUID)
         user_id:
-          type: integer
-          example: 1
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+          description: Creator user identifier (UUID)
+        username:
+          type: string
+          example: john_doe
+          description: Creator username
         title:
           type: string
           example: Amazing Sunset Video
@@ -887,9 +976,10 @@ components:
         - score
       properties:
         media_id:
-          type: integer
-          example: 1
-          description: ID of the media content to rate
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+          description: UUID of the media content to rate
         score:
           type: integer
           minimum: 1
@@ -919,14 +1009,28 @@ components:
       type: object
       properties:
         rating_id:
-          type: integer
-          example: 1
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+          description: Unique rating identifier (UUID)
         media_id:
-          type: integer
-          example: 1
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+          description: Media content identifier (UUID)
         user_id:
-          type: integer
-          example: 1
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+          description: User identifier (UUID)
+        username:
+          type: string
+          example: john_doe
+          description: Username of the rater
+        media_title:
+          type: string
+          example: Amazing Sunset Video
+          description: Title of the rated media
         score:
           type: integer
           minimum: 1
@@ -943,24 +1047,15 @@ components:
           type: string
           format: date-time
           example: "2024-01-15T15:00:00Z"
-        user:
-          $ref: '#/components/schemas/User'
-        media:
-          type: object
-          properties:
-            media_id:
-              type: integer
-              example: 1
-            title:
-              type: string
-              example: Amazing Sunset Video
 
     RatingStats:
       type: object
       properties:
         media_id:
-          type: integer
-          example: 1
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+          description: Media content identifier (UUID)
         total_ratings:
           type: integer
           example: 42
