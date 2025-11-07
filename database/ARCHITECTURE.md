@@ -152,11 +152,40 @@ CONSTRAINT unique_user_media_rating UNIQUE (media_id, user_id)
 - No ambiguity in stored values
 - Better for distributed users
 
-### 10. Text Fields Strategy
+### 10. Password Security
+
+**Decision**: Use Werkzeug password hashing (PBKDF2 + SHA256)
+
+**Implementation**:
+- Passwords never stored in plain text
+- `password_hash` field stores the hashed value (VARCHAR(255))
+- Hashing handled by application layer (Flask/Werkzeug)
+- Salt automatically included in hash
+
+**Benefits**:
+- Industry-standard security
+- Resistant to rainbow table attacks
+- Configurable iteration count for future-proofing
+- Compatible with Flask ecosystem
+
+**Application Usage**:
+```python
+from werkzeug.security import generate_password_hash, check_password_hash
+
+# Registration
+user.password_hash = generate_password_hash(password)
+
+# Login verification
+if check_password_hash(user.password_hash, password):
+    # Login successful
+```
+
+### 11. Text Fields Strategy
 
 **Field Sizing**:
 - `username`: VARCHAR(50) - reasonable limit for display
 - `email`: VARCHAR(255) - RFC 5321 maximum
+- `password_hash`: VARCHAR(255) - accommodate hashed password with salt
 - `title`: VARCHAR(255) - standard title length
 - `description`: TEXT - unlimited for detailed descriptions
 - `comment`: TEXT - unlimited for user feedback
@@ -197,7 +226,14 @@ FROM users WHERE user_id = ?;
 - Uses: `rating_count` cache, `idx_media_user`
 
 ## Security Considerations
-- UUID prevents ID enumeration
-- Foreign key constraints ensure data integrity
-- Check constraints prevent invalid data (score 1-5)
-- Unique constraints prevent duplicate ratings
+
+### Authentication & Authorization
+- **Password Security**: All passwords hashed using Werkzeug (PBKDF2 + SHA256)
+- **JWT Tokens**: Stateless authentication with configurable expiration
+- **No Plain Text Passwords**: Never stored or logged
+
+### Data Integrity
+- **UUID Primary Keys**: Prevents ID enumeration attacks
+- **Foreign Key Constraints**: Ensures referential integrity
+- **Check Constraints**: Prevents invalid data (score 1-5)
+- **Unique Constraints**: Prevents duplicate ratings

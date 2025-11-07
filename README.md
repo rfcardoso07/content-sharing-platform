@@ -47,6 +47,7 @@ The database consists of three main tables:
 - `user_id` (UUID, Primary Key)
 - `username` (VARCHAR, Unique)
 - `email` (VARCHAR, Unique)
+- `password_hash` (VARCHAR) - Securely hashed password
 - `rating_count` (INTEGER) - Automatically updated via triggers
 - `last_login` (TIMESTAMP WITH TIME ZONE)
 - `created_at` (TIMESTAMP WITH TIME ZONE)

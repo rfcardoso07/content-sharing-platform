@@ -9,6 +9,7 @@
 │ PK user_id (UUID)       │
 │    username             │
 │    email                │
+│    password_hash        │
 │    rating_count         │
 │    last_login           │
 │    created_at           │
@@ -86,6 +87,7 @@
 - **user_id**: UUID, Primary Key, Auto-generated
 - **username**: VARCHAR(50), Unique, Not Null
 - **email**: VARCHAR(255), Unique, Not Null
+- **password_hash**: VARCHAR(255), Not Null, Securely hashed using Werkzeug
 - **rating_count**: INTEGER, Default 0, Check >= 0
 - **last_login**: TIMESTAMP WITH TIME ZONE, Nullable
 - **created_at**: TIMESTAMP WITH TIME ZONE, Auto-generated
