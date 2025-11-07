@@ -20,11 +20,25 @@ info:
     ```
     
     ## Sample Users
-    The database is pre-populated with sample users (password: `password123`):
-    - `john_doe` / john@example.com
-    - `jane_smith` / jane@example.com
-    - `game_master` / gamer@example.com
-    - `music_lover` / musiclover@example.com
+    The database is pre-populated with sample users (all with password: `password123`):
+    - `john_doe` / john@example.com - Created: Puzzle Master 3000, Coding Tutorial Series
+    - `jane_smith` / jane@example.com - Created: Sunset Artwork, Abstract Expressions
+    - `game_master` / gamer@example.com - Created: Epic Adventure Game
+    - `music_lover` / musiclover@example.com - Created: Chill Beats, Epic Orchestra
+    
+    ## Sample Content
+    Pre-loaded content you can rate and interact with:
+    - **Games**: Epic Adventure Game (3 ratings), Puzzle Master 3000 (1 rating)
+    - **Videos**: Coding Tutorial Series (1 rating)
+    - **Artwork**: Sunset Artwork (2 ratings), Abstract Expressions
+    - **Music**: Chill Beats (1 rating), Epic Orchestra (1 rating)
+    
+    ## Quick Start
+    1. **Login**: Use `POST /api/auth/login` with username `john_doe` and password `password123`
+    2. **List Content**: Call `GET /api/content` to see all available media
+    3. **View Details**: Copy a `media_id` and use `GET /api/content/{media_id}`
+    4. **Create Rating**: Rate content using `POST /api/ratings` with a media_id from step 2
+    5. **Create Content**: Upload your own content with `POST /api/content`
   version: 1.0.0
   contact:
     name: API Support
@@ -237,11 +251,12 @@ paths:
             $ref: '#/components/schemas/MediaCategory'
         - name: user_id
           in: query
-          description: Filter by creator user ID (UUID)
+          description: |
+            Filter by creator user ID (UUID).
+            To get user IDs, login and call GET /api/auth/me, or check the creator info from any content.
           schema:
             type: string
             format: uuid
-            example: 550e8400-e29b-41d4-a716-446655440000
         - name: search
           in: query
           description: Search in title and description
@@ -292,21 +307,37 @@ paths:
               $ref: '#/components/schemas/MediaContentCreate'
             examples:
               gameContent:
-                summary: Game content
+                summary: Game - Space Shooter
                 value:
-                  title: My Awesome Game
-                  description: An exciting puzzle game
+                  title: Space Shooter 2025
+                  description: Fast-paced space combat game with amazing graphics
                   category: game
-                  thumbnail_url: https://example.com/thumbnails/game.jpg
-                  content_url: https://example.com/games/mygame.zip
+                  thumbnail_url: https://example.com/thumbnails/space-shooter.jpg
+                  content_url: https://example.com/games/space-shooter.zip
               videoContent:
-                summary: Video content
+                summary: Video - Photography Tutorial
                 value:
-                  title: Cooking Tutorial
-                  description: Learn to cook amazing pasta
+                  title: Photography Basics
+                  description: Learn the fundamentals of digital photography
                   category: video
-                  thumbnail_url: https://example.com/thumbnails/cooking.jpg
-                  content_url: https://example.com/videos/cooking.mp4
+                  thumbnail_url: https://example.com/thumbnails/photo-tutorial.jpg
+                  content_url: https://example.com/videos/photo-tutorial.mp4
+              artworkContent:
+                summary: Artwork - Digital Landscape
+                value:
+                  title: Mountain Valley
+                  description: Beautiful digital landscape painting
+                  category: artwork
+                  thumbnail_url: https://example.com/thumbnails/mountain-valley.jpg
+                  content_url: https://example.com/art/mountain-valley.png
+              musicContent:
+                summary: Music - Jazz Track
+                value:
+                  title: Smooth Jazz Evening
+                  description: Relaxing jazz music for any occasion
+                  category: music
+                  thumbnail_url: https://example.com/thumbnails/jazz.jpg
+                  content_url: https://example.com/music/smooth-jazz.mp3
       responses:
         '201':
           description: Content created successfully
@@ -359,17 +390,20 @@ paths:
       tags:
         - Content
       summary: Get content by ID
-      description: Get detailed information about a specific media content
+      description: |
+        Get detailed information about a specific media content.
+        
+        **To test:** First call `GET /api/content` to get a list of media IDs, then use one of those UUIDs here.
       operationId: getContent
       parameters:
         - name: media_id
           in: path
           required: true
-          description: Media content UUID
+          description: Media content UUID (get from GET /api/content)
           schema:
             type: string
             format: uuid
-            example: 550e8400-e29b-41d4-a716-446655440000
+            example: "00000000-0000-0000-0000-000000000000"
       responses:
         '200':
           description: Content details
@@ -388,7 +422,13 @@ paths:
       tags:
         - Content
       summary: Update content
-      description: Update an existing media content (only by creator)
+      description: |
+        Update an existing media content (only by creator).
+        
+        **To test:**
+        1. Login as `john_doe` or `jane_smith` or `game_master` or `music_lover`
+        2. Call `GET /api/content` to find content created by that user
+        3. Copy the `media_id` and use it here
       operationId: updateContent
       security:
         - BearerAuth: []
@@ -396,11 +436,11 @@ paths:
         - name: media_id
           in: path
           required: true
-          description: Media content UUID
+          description: Media content UUID (must be owned by logged-in user)
           schema:
             type: string
             format: uuid
-            example: 550e8400-e29b-41d4-a716-446655440000
+            example: "00000000-0000-0000-0000-000000000000"
       requestBody:
         required: true
         content:
@@ -449,7 +489,15 @@ paths:
       tags:
         - Content
       summary: Delete content
-      description: Delete a media content (only by creator)
+      description: |
+        Delete a media content (only by creator).
+        
+        **Warning:** This will permanently delete the content and all its ratings!
+        
+        **To test:**
+        1. Create new content via `POST /api/content`
+        2. Copy its `media_id` from the response
+        3. Use that `media_id` here to delete it
       operationId: deleteContent
       security:
         - BearerAuth: []
@@ -457,11 +505,11 @@ paths:
         - name: media_id
           in: path
           required: true
-          description: Media content UUID
+          description: Media content UUID (must be owned by logged-in user)
           schema:
             type: string
             format: uuid
-            example: 550e8400-e29b-41d4-a716-446655440000
+            example: "00000000-0000-0000-0000-000000000000"
       responses:
         '200':
           description: Content deleted successfully
@@ -517,18 +565,16 @@ paths:
             maximum: 100
         - name: media_id
           in: query
-          description: Filter by media content UUID
+          description: Filter by media content UUID (get from GET /api/content)
           schema:
             type: string
             format: uuid
-            example: 550e8400-e29b-41d4-a716-446655440000
         - name: user_id
           in: query
-          description: Filter by user UUID
+          description: Filter by user UUID (get from GET /api/auth/me)
           schema:
             type: string
             format: uuid
-            example: 550e8400-e29b-41d4-a716-446655440000
       responses:
         '200':
           description: List of ratings
@@ -548,7 +594,14 @@ paths:
       tags:
         - Ratings
       summary: Create rating
-      description: Create a new rating for a media content (requires authentication)
+      description: |
+        Create a new rating for a media content (requires authentication).
+        
+        **To test with real data:**
+        1. Login as a user (e.g., `game_master` / `password123`)
+        2. Get list of content: `GET /api/content`
+        3. Copy a `media_id` from the response
+        4. Use that `media_id` in the rating request below
       operationId: createRating
       security:
         - BearerAuth: []
@@ -559,17 +612,12 @@ paths:
             schema:
               $ref: '#/components/schemas/RatingCreate'
             examples:
-              rating5stars:
-                summary: 5-star rating with comment
+              ratingExample:
+                summary: Rate existing content (replace media_id with real UUID from /api/content)
                 value:
-                  media_id: 550e8400-e29b-41d4-a716-446655440000
+                  media_id: "REPLACE_WITH_REAL_MEDIA_ID_FROM_GET_/api/content"
                   score: 5
                   comment: Excellent content! Highly recommended!
-              rating4stars:
-                summary: 4-star rating without comment
-                value:
-                  media_id: 550e8400-e29b-41d4-a716-446655440000
-                  score: 4
       responses:
         '201':
           description: Rating created successfully
@@ -607,17 +655,20 @@ paths:
       tags:
         - Ratings
       summary: Get rating by ID
-      description: Get detailed information about a specific rating
+      description: |
+        Get detailed information about a specific rating.
+        
+        **To test:** Call `GET /api/ratings` first to get a list of rating IDs.
       operationId: getRating
       parameters:
         - name: rating_id
           in: path
           required: true
-          description: Rating UUID
+          description: Rating UUID (get from GET /api/ratings)
           schema:
             type: string
             format: uuid
-            example: 550e8400-e29b-41d4-a716-446655440000
+            example: "00000000-0000-0000-0000-000000000000"
       responses:
         '200':
           description: Rating details
@@ -636,7 +687,13 @@ paths:
       tags:
         - Ratings
       summary: Update rating
-      description: Update an existing rating (only by creator)
+      description: |
+        Update an existing rating (only by creator).
+        
+        **To test:**
+        1. Login as a user who has created ratings (e.g., `john_doe`)
+        2. Call `GET /api/ratings?user_id=YOUR_USER_ID` to see your ratings
+        3. Copy a `rating_id` and use it here
       operationId: updateRating
       security:
         - BearerAuth: []
@@ -644,11 +701,11 @@ paths:
         - name: rating_id
           in: path
           required: true
-          description: Rating UUID
+          description: Rating UUID (must be owned by logged-in user)
           schema:
             type: string
             format: uuid
-            example: 550e8400-e29b-41d4-a716-446655440000
+            example: "00000000-0000-0000-0000-000000000000"
       requestBody:
         required: true
         content:
@@ -697,7 +754,13 @@ paths:
       tags:
         - Ratings
       summary: Delete rating
-      description: Delete a rating (only by creator)
+      description: |
+        Delete a rating (only by creator).
+        
+        **To test:**
+        1. Create a new rating via `POST /api/ratings`
+        2. Copy its `rating_id` from the response
+        3. Use that `rating_id` here to delete it
       operationId: deleteRating
       security:
         - BearerAuth: []
@@ -705,11 +768,11 @@ paths:
         - name: rating_id
           in: path
           required: true
-          description: Rating UUID
+          description: Rating UUID (must be owned by logged-in user)
           schema:
             type: string
             format: uuid
-            example: 550e8400-e29b-41d4-a716-446655440000
+            example: "00000000-0000-0000-0000-000000000000"
       responses:
         '200':
           description: Rating deleted successfully
@@ -745,17 +808,28 @@ paths:
       tags:
         - Ratings
       summary: Get rating statistics
-      description: Get comprehensive rating statistics for a media content
+      description: |
+        Get comprehensive rating statistics for a media content.
+        
+        **To test:**
+        1. Call `GET /api/content` to get a list of media
+        2. Choose content that has ratings (check the stats field)
+        3. Copy its `media_id` and use it here
+        
+        **Pre-seeded content with ratings:**
+        - "Epic Adventure Game" (3 ratings)
+        - "Sunset Artwork" (2 ratings)
+        - "Puzzle Master 3000" (1 rating)
       operationId: getRatingStats
       parameters:
         - name: media_id
           in: path
           required: true
-          description: Media content UUID
+          description: Media content UUID (get from GET /api/content)
           schema:
             type: string
             format: uuid
-            example: 550e8400-e29b-41d4-a716-446655440000
+            example: "00000000-0000-0000-0000-000000000000"
       responses:
         '200':
           description: Rating statistics
@@ -833,7 +907,6 @@ components:
         user_id:
           type: string
           format: uuid
-          example: 550e8400-e29b-41d4-a716-446655440000
           description: Unique user identifier (UUID)
         username:
           type: string
@@ -864,11 +937,11 @@ components:
           type: string
           minLength: 1
           maxLength: 255
-          example: Amazing Sunset Video
+          example: Space Shooter 2025
           description: Content title (max 255 characters)
         description:
           type: string
-          example: A beautiful sunset captured at the beach
+          example: Fast-paced space combat game with amazing graphics
           description: Optional content description
         category:
           $ref: '#/components/schemas/MediaCategory'
@@ -876,13 +949,13 @@ components:
           type: string
           format: uri
           maxLength: 512
-          example: https://example.com/thumbnails/sunset.jpg
+          example: https://example.com/thumbnails/space-shooter.jpg
           description: Optional thumbnail URL
         content_url:
           type: string
           format: uri
           maxLength: 512
-          example: https://example.com/videos/sunset.mp4
+          example: https://example.com/games/space-shooter.zip
           description: URL to the actual content
 
     MediaContentUpdate:
@@ -892,22 +965,22 @@ components:
           type: string
           minLength: 1
           maxLength: 255
-          example: Updated Sunset Video
+          example: Epic Adventure Game - Remastered Edition
         description:
           type: string
-          example: Updated description
+          example: Now with enhanced graphics and new levels!
         category:
           $ref: '#/components/schemas/MediaCategory'
         thumbnail_url:
           type: string
           format: uri
           maxLength: 512
-          example: https://example.com/thumbnails/sunset-new.jpg
+          example: https://example.com/thumbnails/adventure-game-v2.jpg
         content_url:
           type: string
           format: uri
           maxLength: 512
-          example: https://example.com/videos/sunset-hd.mp4
+          example: https://example.com/content/adventure-game-v2.zip
 
     MediaContent:
       type: object
@@ -915,12 +988,10 @@ components:
         media_id:
           type: string
           format: uuid
-          example: 550e8400-e29b-41d4-a716-446655440000
           description: Unique media content identifier (UUID)
         user_id:
           type: string
           format: uuid
-          example: 550e8400-e29b-41d4-a716-446655440000
           description: Creator user identifier (UUID)
         username:
           type: string
@@ -928,20 +999,20 @@ components:
           description: Creator username
         title:
           type: string
-          example: Amazing Sunset Video
+          example: Epic Adventure Game
         description:
           type: string
-          example: A beautiful sunset captured at the beach
+          example: An amazing open-world adventure game with stunning graphics
         category:
           $ref: '#/components/schemas/MediaCategory'
         thumbnail_url:
           type: string
           format: uri
-          example: https://example.com/thumbnails/sunset.jpg
+          example: https://example.com/thumbnails/adventure-game.jpg
         content_url:
           type: string
           format: uri
-          example: https://example.com/videos/sunset.mp4
+          example: https://example.com/content/adventure-game.zip
         created_at:
           type: string
           format: date-time
@@ -978,8 +1049,10 @@ components:
         media_id:
           type: string
           format: uuid
-          example: 550e8400-e29b-41d4-a716-446655440000
-          description: UUID of the media content to rate
+          description: |
+            UUID of the media content to rate.
+            Get this from GET /api/content response.
+          example: "REPLACE_WITH_REAL_UUID"
         score:
           type: integer
           minimum: 1
@@ -1011,17 +1084,14 @@ components:
         rating_id:
           type: string
           format: uuid
-          example: 550e8400-e29b-41d4-a716-446655440000
           description: Unique rating identifier (UUID)
         media_id:
           type: string
           format: uuid
-          example: 550e8400-e29b-41d4-a716-446655440000
           description: Media content identifier (UUID)
         user_id:
           type: string
           format: uuid
-          example: 550e8400-e29b-41d4-a716-446655440000
           description: User identifier (UUID)
         username:
           type: string
@@ -1029,7 +1099,7 @@ components:
           description: Username of the rater
         media_title:
           type: string
-          example: Amazing Sunset Video
+          example: Epic Adventure Game
           description: Title of the rated media
         score:
           type: integer
@@ -1038,7 +1108,7 @@ components:
           example: 5
         comment:
           type: string
-          example: Excellent content!
+          example: Amazing game! Highly recommended!
         created_at:
           type: string
           format: date-time
@@ -1054,39 +1124,38 @@ components:
         media_id:
           type: string
           format: uuid
-          example: 550e8400-e29b-41d4-a716-446655440000
           description: Media content identifier (UUID)
         total_ratings:
           type: integer
-          example: 42
+          example: 3
           description: Total number of ratings
         average_rating:
           type: number
           format: float
-          example: 4.5
+          example: 4.67
           description: Average rating score
         rating_distribution:
           type: object
           properties:
             '1':
               type: integer
-              example: 2
+              example: 0
               description: Number of 1-star ratings
             '2':
               type: integer
-              example: 3
+              example: 0
               description: Number of 2-star ratings
             '3':
               type: integer
-              example: 5
+              example: 0
               description: Number of 3-star ratings
             '4':
               type: integer
-              example: 12
+              example: 1
               description: Number of 4-star ratings
             '5':
               type: integer
-              example: 20
+              example: 2
               description: Number of 5-star ratings
 
     Pagination:
