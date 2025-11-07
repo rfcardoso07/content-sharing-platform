@@ -130,6 +130,11 @@ For detailed information about the sample data, see [database/SAMPLE_DATA.md](da
 
 The platform includes a complete REST API built with Flask.
 
+### Prerequisites
+
+- Docker and Docker Compose installed on your system
+- Port 5000 available (or modify the port in `.env` file)
+
 ### Features
 
 - **User Authentication**: JWT-based authentication with registration and login
